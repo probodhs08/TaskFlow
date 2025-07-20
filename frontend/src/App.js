@@ -16,53 +16,73 @@ import Register from './components/Register';
 import ForgotPassword from './components/forgotPassword/ForgotPassword';
 import ResetPassword from './components/forgotPassword/ResetPassword';
 import axios from './Axios/axios.js';
+
 function App() {
   const token = JSON.parse(localStorage.getItem("authToken"));
-  const [tasks, dispatch] = useReducer(taskReducer, [])
-  const [userToken, tokenDispatch] = useReducer(tokenReducer, token)
-  const [user, userDispatch] = useReducer(userReducer, {})
+  const [tasks, dispatch] = useReducer(taskReducer, []);
+  const [userToken, tokenDispatch] = useReducer(tokenReducer, token);
+  const [user, userDispatch] = useReducer(userReducer, {});
+
+  const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+
+  // Fetch all tasks (public or initial load)
   useEffect(() => {
-    console.log("App.js");
+    const fetchAllTasks = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/tasks`);
+        const data = await res.json();
+        dispatch({ type: "SET_TASK", payload: data });
+      } catch (err) {
+        console.error('Error fetching tasks:', err);
+      }
+    };
+
+    fetchAllTasks();
+  }, [API_URL]);
+
+  // Fetch user info when logged in
+  useEffect(() => {
     const fetchUser = async () => {
       try {
-        console.log("fetchUser");
-        const res = await axios.get("/user/getUser",{
+        const res = await axios.get("/user/getUser", {
           headers: {
             Authorization: `Bearer ${userToken}`
           }
-        })
-        //tokenDispatch({type: "SET_TOKEN", payload: res.token})
-        console.log("res.data: ", res.data);
-        userDispatch({type: "SET_USER", payload:res.data.user})
+        });
+        userDispatch({ type: "SET_USER", payload: res.data.user });
       } catch (error) {
         console.log(error);
       }
-    }
+    };
+
     if (userToken) {
-      fetchUser()
+      fetchUser();
     }
-  },[userToken])
+  }, [userToken]);
+
+  // Fetch tasks for logged-in user
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        console.log("fetchTasks");
         const res = await axios.get("/task/getTask", {
           headers: {
             Authorization: `Bearer ${userToken}`
           }
-        })
-        dispatch({ type: "SET_TASK", payload: res.data })
+        });
+        dispatch({ type: "SET_TASK", payload: res.data });
       } catch (error) {
         console.log(error);
       }
-    }
+    };
+
     if (userToken) {
-      fetchTasks()
+      fetchTasks();
     }
-  },[userToken])
+  }, [userToken]);
+
   return (
     <BrowserRouter>
-      <TokenContext.Provider value={{userToken, tokenDispatch, user, userDispatch}}>
+      <TokenContext.Provider value={{ userToken, tokenDispatch, user, userDispatch }}>
         <TaskContext.Provider value={{ tasks, dispatch }}>
           <Routes>
             <Route path="/" element={<Header />}>
@@ -79,7 +99,6 @@ function App() {
           </Routes>
         </TaskContext.Provider>
       </TokenContext.Provider>
-
     </BrowserRouter>
   );
 }

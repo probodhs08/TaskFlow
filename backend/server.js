@@ -16,7 +16,7 @@ mongoose.set('strictQuery', true);
 //middlewares
 app.use(express.json())
 app.use(cors({
-  origin: ['https://taskflow-5t3ubpww1-probodh-sahoos-projects.vercel.app/'],  // your Vercel URL
+  origin: ['https://taskflow-beta-three.vercel.app'],  // your Vercel URL
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
